@@ -17,6 +17,14 @@ const {GoogleGenerativeAI} = require("@google/generative-ai");
 // Define secret for Gemini API Key
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
+// Analysis prompt for Gemini
+const ANALYSIS_PROMPT = `Analise este vídeo de qualidade empresarial e forneça:
+1. Resumo do conteúdo
+2. Identificação de problemas de qualidade (se houver)
+3. Métricas de conformidade
+4. Recomendações de melhoria
+5. Score de qualidade (0-100)`;
+
 // Initialize Firebase Admin
 admin.initializeApp();
 
@@ -33,18 +41,22 @@ exports.processVideoWithGemini = onObjectFinalized({
   const filePath = event.data.name;
   const contentType = event.data.contentType;
 
-  // Only process video files in the companies/{companyId}/videos/ path
-  if (!contentType.startsWith("video/") || !filePath.includes("/videos/")) {
+  // Validate path structure: companies/{companyId}/videos/{filename}
+  const pathRegex = /^companies\/([^/]+)\/videos\/([^/]+)$/;
+  const pathMatch = filePath.match(pathRegex);
+
+  // Only process video files in the correct path structure
+  if (!contentType.startsWith("video/") || !pathMatch) {
     logger.info("Skipping non-video file or invalid path:", filePath);
     return null;
   }
 
   logger.info("Processing video:", filePath);
 
-  // Extract company ID from path
-  const pathParts = filePath.split("/");
-  const companyId = pathParts[1];
-  const videoId = pathParts[3]?.split(".")[0];
+  // Extract company ID and video filename from validated path
+  const companyId = pathMatch[1];
+  const videoFilename = pathMatch[2];
+  const videoId = videoFilename.split(".")[0];
 
   if (!companyId || !videoId) {
     logger.error("Invalid file path structure:", filePath);
@@ -64,15 +76,8 @@ exports.processVideoWithGemini = onObjectFinalized({
     const gcsUri = `gs://${event.data.bucket}/${filePath}`;
 
     // Process video with Gemini 1.5 Pro
-    const prompt = `Analise este vídeo de qualidade empresarial e forneça:
-1. Resumo do conteúdo
-2. Identificação de problemas de qualidade (se houver)
-3. Métricas de conformidade
-4. Recomendações de melhoria
-5. Score de qualidade (0-100)`;
-
     const result = await model.generateContent([
-      prompt,
+      ANALYSIS_PROMPT,
       {
         fileData: {
           mimeType: contentType,

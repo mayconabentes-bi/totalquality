@@ -221,7 +221,10 @@
                 </li>
                 <li>
                     <strong>Configurar Gemini API Key</strong><br>
-                    Crie o secret no Google Cloud: <code>gcloud secrets create GEMINI_API_KEY</code>
+                    Obtenha a key em <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com</a><br>
+                    <div class="code-block">
+                        <code>echo "SUA_API_KEY" | gcloud secrets create GEMINI_API_KEY --data-file=-</code>
+                    </div>
                 </li>
                 <li>
                     <strong>Deploy</strong><br>
