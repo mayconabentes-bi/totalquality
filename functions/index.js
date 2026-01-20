@@ -20,10 +20,10 @@ const geminiApiKey = defineSecret("GEMINI_API_KEY");
 // System instruction for POP extraction
 // (Procedimento Operacional Padrão - Standard Operating Procedure)
 const POP_EXTRACTION_PROMPT = `Você é um especialista em extração de ` +
-  `Procedimentos Operacionais Padrão (POPs) de vídeos corporativos.
+`Procedimentos Operacionais Padrão (POPs) de vídeos corporativos.
 
 Analise este vídeo e extraia os seguintes elementos estruturados em ` +
-  `formato JSON:
+`formato JSON:
 
 1. **Título do POP**: Identifique o procedimento sendo demonstrado
 2. **Objetivo**: Qual é o propósito deste procedimento?
@@ -39,9 +39,9 @@ Analise este vídeo e extraia os seguintes elementos estruturados em ` +
 7. **Responsável**: Tipo de profissional que deve executar
 8. **Critérios de Qualidade**: Como verificar se foi executado corretamente
 9. **Não-Conformidades Identificadas**: Problemas ou desvios ` +
-  `detectados no vídeo
+`detectados no vídeo
 10. **Score de Conformidade**: Avaliação de 0-100 da execução ` +
-  `demonstrada
+`demonstrada
 
 Retorne um JSON estruturado e completo.`;
 
@@ -111,7 +111,10 @@ exports.VideoProcessor = onObjectFinalized({
     try {
       popData = JSON.parse(extractedText);
     } catch (parseError) {
-      logger.warn("Response is not valid JSON, storing as text:", parseError);
+      logger.warn("JSON parsing failed, storing as raw text:", {
+        error: parseError.message,
+        textPreview: extractedText.substring(0, 100),
+      });
       popData = {rawText: extractedText};
     }
 
