@@ -1,0 +1,24 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Multi-tenant structure: company-specific video storage
+    match /companies/{companyId}/videos/{allPaths=**} {
+      // Allow authenticated users from the same company to upload videos
+      allow read: if request.auth != null && 
+                     request.auth.token.companyId == companyId;
+      allow write: if request.auth != null && 
+                      request.auth.token.companyId == companyId &&
+                      request.resource.size < 500 * 1024 * 1024 && // Max 500MB
+                      request.resource.contentType.matches('video/.*');
+    }
+    
+    // Processed videos storage
+    match /companies/{companyId}/processed/{allPaths=**} {
+      allow read: if request.auth != null && 
+                     request.auth.token.companyId == companyId;
+      // Only Cloud Functions can write processed videos
+      allow write: if false;
+    }
+  }
+}
