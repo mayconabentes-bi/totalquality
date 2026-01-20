@@ -81,8 +81,13 @@ cd ..
 Obtenha sua API key em: https://makersuite.google.com/app/apikey
 
 ```bash
-# Configurar a API key como variável de ambiente
-firebase functions:config:set gemini.api_key="SUA_GEMINI_API_KEY"
+# Para Firebase Functions v2, usar secrets do Google Cloud Secret Manager
+# Primeiro, crie o secret no Google Cloud Console ou via gcloud CLI
+gcloud secrets create GEMINI_API_KEY --data-file=- <<< "SUA_GEMINI_API_KEY"
+
+# Ou defina durante o deploy - o Firebase solicitará o valor
+firebase deploy --only functions
+# Quando solicitado, insira sua Gemini API key
 ```
 
 ### 8. Deploy

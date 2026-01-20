@@ -8,10 +8,14 @@
  */
 
 const {onRequest} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const {onObjectFinalized} = require("firebase-functions/v2/storage");
 const {GoogleGenerativeAI} = require("@google/generative-ai");
+
+// Define secret for Gemini API Key
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -24,6 +28,7 @@ exports.processVideoWithGemini = onObjectFinalized({
   cpu: 2,
   memory: "4GiB",
   timeoutSeconds: 540,
+  secrets: [geminiApiKey],
 }, async (event) => {
   const filePath = event.data.name;
   const contentType = event.data.contentType;
@@ -47,19 +52,16 @@ exports.processVideoWithGemini = onObjectFinalized({
   }
 
   try {
-    // Initialize Gemini AI (requires GEMINI_API_KEY environment variable)
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // Initialize Gemini AI with secret API key
+    const genAI = new GoogleGenerativeAI(geminiApiKey.value());
     const model = genAI.getGenerativeModel({model: "gemini-1.5-pro"});
 
     // Get video file from Storage
     const bucket = admin.storage().bucket(event.data.bucket);
     const file = bucket.file(filePath);
 
-    // Create a temporary download URL (valid for 1 hour)
-    const [url] = await file.getSignedUrl({
-      action: "read",
-      expires: Date.now() + 3600000,
-    });
+    // Use GCS URI format for Gemini (gs://bucket/path)
+    const gcsUri = `gs://${event.data.bucket}/${filePath}`;
 
     // Process video with Gemini 1.5 Pro
     const prompt = `Analise este vídeo de qualidade empresarial e forneça:
@@ -72,9 +74,9 @@ exports.processVideoWithGemini = onObjectFinalized({
     const result = await model.generateContent([
       prompt,
       {
-        inlineData: {
+        fileData: {
           mimeType: contentType,
-          data: url,
+          fileUri: gcsUri,
         },
       },
     ]);
