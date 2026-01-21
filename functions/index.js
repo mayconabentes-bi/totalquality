@@ -17,22 +17,43 @@ const {GoogleGenerativeAI} = require("@google/generative-ai");
 // Define secret for Gemini API Key
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
-// Analysis prompt for Gemini
-const ANALYSIS_PROMPT = `Analise este vídeo de qualidade empresarial e forneça:
-1. Resumo do conteúdo
-2. Identificação de problemas de qualidade (se houver)
-3. Métricas de conformidade
-4. Recomendações de melhoria
-5. Score de qualidade (0-100)`;
+// System instruction for POP extraction
+// (Procedimento Operacional Padrão - Standard Operating Procedure)
+const POP_EXTRACTION_PROMPT = `Você é um especialista em extração de ` +
+`Procedimentos Operacionais Padrão (POPs) de vídeos corporativos.
+
+Analise este vídeo e extraia os seguintes elementos estruturados em ` +
+`formato JSON:
+
+1. **Título do POP**: Identifique o procedimento sendo demonstrado
+2. **Objetivo**: Qual é o propósito deste procedimento?
+3. **Etapas**: Liste cada passo demonstrado no vídeo com:
+   - Número da etapa
+   - Descrição detalhada da ação
+   - Tempo aproximado no vídeo (se identificável)
+   - Ferramentas/equipamentos necessários
+   - Pontos críticos de segurança ou qualidade
+4. **Requisitos de Segurança**: Equipamentos de proteção, precauções
+5. **Materiais e Ferramentas**: Lista completa necessária
+6. **Tempo Estimado**: Duração total do procedimento
+7. **Responsável**: Tipo de profissional que deve executar
+8. **Critérios de Qualidade**: Como verificar se foi executado corretamente
+9. **Não-Conformidades Identificadas**: Problemas ou desvios ` +
+`detectados no vídeo
+10. **Score de Conformidade**: Avaliação de 0-100 da execução ` +
+`demonstrada
+
+Retorne um JSON estruturado e completo.`;
 
 // Initialize Firebase Admin
 admin.initializeApp();
 
 /**
- * Cloud Function to process uploaded videos with Gemini 1.5 Pro
- * Triggered when a new video is uploaded to Storage
+ * VideoProcessor - Cloud Function to extract POPs from uploaded videos
+ * Monitors .mp4 uploads and extracts Standard Operating Procedures
+ * using Gemini 1.5 Pro. Triggered when a video is uploaded to Storage.
  */
-exports.processVideoWithGemini = onObjectFinalized({
+exports.VideoProcessor = onObjectFinalized({
   cpu: 2,
   memory: "4GiB",
   timeoutSeconds: 540,
@@ -63,21 +84,17 @@ exports.processVideoWithGemini = onObjectFinalized({
     return null;
   }
 
+  // Use GCS URI format for Gemini (gs://bucket/path)
+  const gcsUri = `gs://${event.data.bucket}/${filePath}`;
+
   try {
     // Initialize Gemini AI with secret API key
     const genAI = new GoogleGenerativeAI(geminiApiKey.value());
     const model = genAI.getGenerativeModel({model: "gemini-1.5-pro"});
 
-    // Get video file from Storage
-    const bucket = admin.storage().bucket(event.data.bucket);
-    const file = bucket.file(filePath);
-
-    // Use GCS URI format for Gemini (gs://bucket/path)
-    const gcsUri = `gs://${event.data.bucket}/${filePath}`;
-
-    // Process video with Gemini 1.5 Pro
+    // Process video with Gemini 1.5 Pro for POP extraction
     const result = await model.generateContent([
-      ANALYSIS_PROMPT,
+      POP_EXTRACTION_PROMPT,
       {
         fileData: {
           mimeType: contentType,
@@ -87,18 +104,31 @@ exports.processVideoWithGemini = onObjectFinalized({
     ]);
 
     const response = result.response;
-    const analysis = response.text();
+    const extractedText = response.text();
 
-    // Store analysis results in Firestore
+    // Try to parse as JSON, fallback to raw text if not valid JSON
+    let popData;
+    try {
+      popData = JSON.parse(extractedText);
+    } catch (parseError) {
+      logger.warn("JSON parsing failed, storing as raw text:", {
+        error: parseError.message,
+        textPreview: extractedText.substring(0, 100),
+      });
+      popData = {rawText: extractedText};
+    }
+
+    // Store POP extraction results in Firestore
     await admin.firestore()
         .collection("companies")
         .doc(companyId)
-        .collection("analyses")
+        .collection("pops")
         .doc(videoId)
         .set({
           videoPath: filePath,
-          analysis: analysis,
-          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+          videoUri: gcsUri,
+          popData: popData,
+          extractedAt: admin.firestore.FieldValue.serverTimestamp(),
           status: "completed",
         });
 
@@ -111,12 +141,13 @@ exports.processVideoWithGemini = onObjectFinalized({
     await admin.firestore()
         .collection("companies")
         .doc(companyId)
-        .collection("analyses")
+        .collection("pops")
         .doc(videoId)
         .set({
           videoPath: filePath,
+          videoUri: gcsUri,
           error: error.message,
-          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+          extractedAt: admin.firestore.FieldValue.serverTimestamp(),
           status: "failed",
         });
 
