@@ -29,6 +29,19 @@ node_modules/
 dist/
 build/
 .cache/
+functions/lib/
+
+# TypeScript
+*.js
+*.js.map
+*.d.ts
+!functions/index.js
+typings/
+
+# Next.js
+webapp/.next/
+webapp/out/
+webapp/.turbo/
 
 # Environment variables
 .env
