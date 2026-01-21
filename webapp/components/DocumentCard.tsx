@@ -40,7 +40,7 @@ const getImpactoStyles = (impacto: ImpactoMargem): { style: string; icon: string
       icon: '⬆️',
       label: 'Alto Impacto',
     },
-    medio: {
+    médio: {
       style: 'bg-orange-500 text-white',
       icon: '➡️',
       label: 'Médio Impacto',
@@ -62,7 +62,7 @@ const getTipoLabel = (tipo: string): string => {
     POP: 'Procedimento Operacional Padrão',
     Manual: 'Manual',
     Checklist: 'Lista de Verificação',
-    Politica: 'Política',
+    Política: 'Política',
   };
   return labels[tipo] || tipo;
 };

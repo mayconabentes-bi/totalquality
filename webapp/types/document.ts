@@ -6,7 +6,7 @@
 /**
  * Tipos de documentos suportados pelo sistema
  */
-export type DocumentType = 'POP' | 'Manual' | 'Checklist' | 'Politica';
+export type DocumentType = 'POP' | 'Manual' | 'Checklist' | 'Política';
 
 /**
  * Status do ciclo de vida do documento
@@ -16,7 +16,7 @@ export type DocumentStatus = 'rascunho' | 'revisao' | 'ativo' | 'obsoleto';
 /**
  * Nível de impacto do documento na margem de lucro (Sistema Axioma)
  */
-export type ImpactoMargem = 'alto' | 'medio' | 'baixo';
+export type ImpactoMargem = 'alto' | 'médio' | 'baixo';
 
 /**
  * Metadados de criação e revisão do documento

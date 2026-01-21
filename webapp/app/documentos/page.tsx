@@ -47,7 +47,7 @@ export default function DocumentosPage() {
       },
       axiomaMetrics: {
         custoManutencao: 2500.00,
-        impactoMargem: 'medio',
+        impactoMargem: 'médio',
       },
     },
     {
@@ -71,7 +71,7 @@ export default function DocumentosPage() {
     {
       docId: '550e8400-e29b-41d4-a716-446655440004',
       orgId: 'org-001',
-      tipo: 'Politica',
+      tipo: 'Política',
       titulo: 'Política de Gestão da Qualidade',
       status: 'obsoleto',
       versao: '1.0',
@@ -83,7 +83,7 @@ export default function DocumentosPage() {
       },
       axiomaMetrics: {
         custoManutencao: 800.00,
-        impactoMargem: 'medio',
+        impactoMargem: 'médio',
       },
     },
     {
