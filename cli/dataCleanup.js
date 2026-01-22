@@ -166,7 +166,7 @@ async function cleanupObsoleteDocuments(daysOld = 365, dryRun = true) {
  * Find and optionally remove orphaned video POPs without corresponding documents
  */
 async function cleanupOrphanedVideoPOPs(dryRun = true) {
-  console.log('\n�� Limpeza de POPs de Vídeo Órfãos...');
+  console.log('\n🎥 Limpeza de POPs de Vídeo Órfãos...');
   console.log(`  Modo: ${dryRun ? 'DRY RUN (simulação)' : 'EXECUÇÃO REAL'}\n`);
   
   const db = initializeFirebase();

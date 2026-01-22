@@ -335,7 +335,7 @@ async function main() {
     console.log('Uso: node cli/index.js <comando>\n');
     console.log('Comandos disponíveis:');
     console.log('  setup-standard  - Iniciar estrutura de gestão documental clássica');
-    console.log('  setup-axioma    - Implementar lógica de IA e métricas de rentabilidade');
+    console.log('  setup-axioma    - Implementar lógica de IA e métricas');
     console.log('  audit-check     - Verificar isolamento multi-tenant\n');
     process.exit(1);
   }

@@ -171,10 +171,13 @@ export class PredictiveAnalysisService {
     }
 
     // Verificar impacto na margem
-    if (document.axiomaMetrics.impactoMargem === 'alto' && riskLevel !== 'baixo') {
+    if (document.axiomaMetrics.impactoMargem === 'alto') {
       reasons.push('Documento tem alto impacto na margem de lucro');
       recommendations.push('Priorizar revisão devido ao alto impacto financeiro');
-      if (riskLevel === 'médio') riskLevel = 'alto';
+      // Elevar risco apenas se ainda não for alto
+      if (riskLevel !== 'alto') {
+        riskLevel = 'alto';
+      }
       needsRevision = true;
     }
 

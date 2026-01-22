@@ -97,7 +97,8 @@ export class VideoPOPIntegrationService {
       // Determinar impacto na margem baseado em score e não-conformidades
       const impactoMargem = this.calculateMarginImpact(scoreConformidade, naoConformidades);
 
-      // Gerar hash do conteúdo (simplificado)
+      // Gerar hash do conteúdo para detecção de mudanças
+      // Nota: Este não é um hash criptográfico seguro, apenas para identificação
       const contentHash = this.generateContentHash(popData);
 
       // Criar documento usando DocumentService
