@@ -36,6 +36,7 @@ functions/lib/
 *.js.map
 *.d.ts
 !functions/index.js
+!cli/*.js
 typings/
 
 # Next.js
