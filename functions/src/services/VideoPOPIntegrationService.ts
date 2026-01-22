@@ -26,7 +26,7 @@ interface VideoPOPData {
       descricao: string;
       tempo?: string;
       ferramentas?: string[];
-      pontosC riticos?: string[];
+      pontosCriticos?: string[];
     }>;
     requisitosSeguranca?: string[];
     materiaisFerramentas?: string[];

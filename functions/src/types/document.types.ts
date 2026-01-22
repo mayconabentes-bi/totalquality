@@ -73,6 +73,12 @@ export interface Document {
   
   /** Métricas do Sistema Axioma para inteligência de margem */
   axiomaMetrics: AxiomaMetrics;
+  
+  /** ID do vídeo vinculado (opcional, para modo Axioma) */
+  videoId?: string;
+  
+  /** Caminho do vídeo no Storage (opcional, para modo Axioma) */
+  videoPath?: string;
 }
 
 /**
