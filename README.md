@@ -1,16 +1,33 @@
 # TotalQuality
 
-Sistema de Análise de Qualidade Empresarial com IA (Gemini 1.5 Pro)
+Sistema de Gestão de Qualidade (SGQ) Empresarial com IA (Gemini 1.5 Pro)
 
 ## 🚀 Visão Geral
 
-TotalQuality é uma plataforma multi-tenant que utiliza o Gemini 1.5 Pro para processar e analisar vídeos de qualidade empresarial, fornecendo insights sobre conformidade, métricas e recomendações de melhoria.
+TotalQuality é uma plataforma multi-tenant completa de SGQ que supera o Qualiex, combinando:
+- **Modo Standard**: Gestão documental clássica com fluxo de aprovação
+- **Modo Axioma**: Inteligência artificial com Gemini 1.5 Pro para vídeo-auditoria e análise preditiva
+
+Baseado nos **4 Cs**: **Conformidade**, **Claridade**, **Cultura** e **Conexão**
 
 ## 📋 Características
 
+### Gestão Documental (Modo Standard)
+- **📄 Documentos SGQ**: POPs, Manuais, Checklists e Políticas
+- **🔄 Fluxo de Aprovação**: Workflow sequencial (Rascunho → Revisão → Ativo)
+- **✅ Checklists ISO**: Templates para ISO 9001, 14001 e 45001
+- **📊 Versionamento**: Controle semântico automático com histórico completo
+
+### Inteligência Axioma (Modo IA)
+- **🎥 Vídeo-Auditoria**: Extração automática de POPs usando Gemini 1.5 Pro
+- **💰 Análise de Margem**: Vinculação custo/impacto em cada documento
+- **🔮 Análise Preditiva**: Sugestões de revisão baseadas em indicadores de falha
+- **🤖 Geração Automática**: POPs criados automaticamente a partir de vídeos
+
+### Infraestrutura
 - **🔥 Firebase Firestore**: Banco de dados NoSQL multi-tenant com isolamento por empresa
-- **⚡ Cloud Functions**: Processamento serverless de vídeos com Gemini 1.5 Pro
-- **🌐 Firebase Hosting**: Dashboard de gestão moderno e responsivo
+- **⚡ Cloud Functions**: Processamento serverless com TypeScript
+- **🌐 Next.js + Tailwind**: Frontend moderno e responsivo
 - **☁️ Cloud Storage**: Armazenamento seguro de vídeos com controle de acesso
 
 ## 🛠️ Setup do Ambiente de Desenvolvimento
@@ -90,7 +107,22 @@ firebase deploy --only functions
 # Quando solicitado, insira sua Gemini API key
 ```
 
-### 8. Deploy
+### 8. Inicializar Sistema
+
+Execute os comandos de contexto para configurar o sistema:
+
+```bash
+# Modo Standard: Estrutura de gestão documental clássica
+node cli/index.js setup-standard
+
+# Modo Axioma: IA e métricas de inteligência
+node cli/index.js setup-axioma
+
+# Verificar isolamento multi-tenant
+node cli/index.js audit-check
+```
+
+### 9. Deploy
 
 ```bash
 # Deploy completo (Firestore, Functions, Hosting, Storage)
@@ -107,55 +139,240 @@ firebase deploy --only storage      # Apenas regras do Storage
 
 ```
 totalquality/
-├── functions/              # Cloud Functions (Gemini 1.5 Pro)
-│   ├── index.js           # Função de processamento de vídeos
-│   ├── package.json       # Dependências das functions
-│   └── .eslintrc.js       # Configuração do ESLint
-├── public/                # Dashboard de Gestão (Hosting)
-│   └── index.html         # Interface do usuário
-├── firebase.json          # Configuração principal do Firebase
-├── .firebaserc            # Aliases de projetos
-├── firestore.rules        # Regras de segurança do Firestore
-├── firestore.indexes.json # Índices do Firestore
-├── storage.rules          # Regras de segurança do Storage
-└── .gitignore            # Arquivos ignorados pelo Git
+├── cli/                       # Comandos de contexto do sistema
+│   ├── index.js              # setup-standard, setup-axioma, audit-check
+│   └── dataCleanup.js        # Utilidades de limpeza de dados (Left Anti-Join)
+├── functions/                 # Cloud Functions (Backend TypeScript)
+│   ├── src/
+│   │   ├── types/
+│   │   │   └── document.types.ts          # Interfaces do sistema de documentos
+│   │   └── services/
+│   │       ├── DocumentService.ts         # CRUD e versionamento de documentos
+│   │       ├── VideoPOPIntegrationService.ts  # Integração vídeo-documento
+│   │       └── PredictiveAnalysisService.ts   # Análise preditiva
+│   ├── index.js              # VideoProcessor (Gemini 1.5 Pro)
+│   ├── package.json
+│   └── tsconfig.json
+├── webapp/                    # Frontend Next.js
+│   ├── app/
+│   │   ├── documentos/
+│   │   │   └── page.tsx      # Dashboard de documentos
+│   │   └── page.tsx          # Página inicial
+│   ├── components/
+│   │   └── DocumentCard.tsx  # Componente de card de documento
+│   └── types/
+│       └── document.ts       # Tipos frontend
+├── firebase.json              # Configuração Firebase
+├── firestore.rules           # Regras de segurança multi-tenant
+├── firestore.indexes.json    # Índices do Firestore
+└── storage.rules             # Regras de armazenamento
+```
+
+## 🎯 Comandos de Contexto
+
+### Setup Standard (Modo Clássico)
+Inicializa estrutura de gestão documental:
+
+```bash
+node cli/index.js setup-standard
+```
+
+**Cria:**
+- Templates de checklist para ISO 9001, 14001 e 45001
+- Configuração de fluxo de aprovação sequencial
+- Estrutura de collections no Firestore
+
+### Setup Axioma (Modo IA)
+Implementa lógica de IA e métricas:
+
+```bash
+node cli/index.js setup-axioma
+```
+
+**Configura:**
+- Processamento de vídeo com Gemini 1.5 Pro
+- Thresholds de análise de margem (alto/médio/baixo)
+- Análise preditiva com indicadores de falha
+- Integração automática vídeo-documento
+
+### Audit Check
+Verifica isolamento multi-tenant:
+
+```bash
+node cli/index.js audit-check
+```
+
+**Valida:**
+- Documentos possuem `orgId`
+- Estrutura de subcoleções por empresa
+- Regras de segurança do Firestore
+
+## 🧹 Limpeza de Dados (Left Anti-Join)
+
+### Remover Documentos Obsoletos
+
+```bash
+# Simulação (dry-run)
+node cli/dataCleanup.js cleanup-obsolete 365
+
+# Execução real - remove documentos obsoletos há mais de 365 dias
+node cli/dataCleanup.js cleanup-obsolete 365 execute
+```
+
+### Remover POPs de Vídeo Órfãos
+
+```bash
+# Simulação
+node cli/dataCleanup.js cleanup-pops
+
+# Execução real
+node cli/dataCleanup.js cleanup-pops execute
+```
+
+### Left Anti-Join Customizado
+
+```bash
+# Encontrar registros em CollectionA que não existem em CollectionB
+node cli/dataCleanup.js left-anti-join documents companies orgId
 ```
 
 ## 🔒 Segurança Multi-Tenant
 
 ### Firestore Rules
-- Cada empresa tem um documento único em `/companies/{companyId}`
-- Usuários só podem acessar dados da própria empresa via `auth.token.companyId`
-- Subcoleções: `videos/` e `analyses/`
+- Cada documento possui `orgId` obrigatório
+- Usuários só acessam dados da própria empresa via `auth.token.orgId`
+- Subcoleções: `videos/`, `analyses/`, `history/`
 
 ### Storage Rules
-- Vídeos armazenados em: `/companies/{companyId}/videos/`
-- Vídeos processados em: `/companies/{companyId}/processed/`
-- Limite de 500MB por vídeo
-- Apenas vídeos são aceitos (`video/*`)
+- Vídeos em: `/companies/{companyId}/videos/`
+- Vídeos processados: `/companies/{companyId}/processed/`
+- Limite: 500MB por vídeo
+- Apenas vídeos (`video/*`)
 
-## 🎯 Uso
+## 🎯 Uso do Sistema
 
-### Upload de Vídeo
+### 1. Criação de Documentos
 
-Quando um vídeo é enviado para `gs://bucket/companies/{companyId}/videos/{filename}`:
+```typescript
+import { DocumentService } from './services/DocumentService';
 
-1. Cloud Function `processVideoWithGemini` é acionada automaticamente
-2. Gemini 1.5 Pro analisa o vídeo
-3. Resultados são salvos em Firestore: `/companies/{companyId}/analyses/{videoId}`
+const service = new DocumentService();
 
-### Análise Retornada
-
-```json
-{
-  "videoPath": "companies/empresa123/videos/video.mp4",
-  "analysis": "Resumo, problemas, métricas, recomendações, score",
-  "processedAt": "2026-01-20T00:00:00.000Z",
-  "status": "completed"
-}
+const doc = await service.createDocument({
+  orgId: 'org-001',
+  tipo: 'POP',
+  titulo: 'Procedimento de Limpeza',
+  contentHash: 'abc123',
+  criadoPor: 'user-123',
+  custoManutencao: 500,
+  impactoMargem: 'médio'
+});
 ```
 
+### 2. Aprovação de Documentos
+
+```typescript
+const approved = await service.approveDocument(
+  doc.docId,
+  'manager-456',
+  'Aprovado após revisão técnica'
+);
+// Versão incrementada: 0.1 → 1.0
+```
+
+### 3. Upload de Vídeo para Análise
+
+Faça upload para Cloud Storage:
+```
+gs://bucket/companies/{companyId}/videos/procedimento.mp4
+```
+
+**VideoProcessor** automaticamente:
+1. Detecta o upload
+2. Processa com Gemini 1.5 Pro
+3. Extrai POP estruturado
+4. Salva em Firestore: `/companies/{companyId}/pops/{videoId}`
+
+### 4. Integração Vídeo-Documento
+
+```typescript
+import { VideoPOPIntegrationService } from './services/VideoPOPIntegrationService';
+
+const integration = new VideoPOPIntegrationService();
+
+// Criar documento a partir de vídeo POP
+const doc = await integration.createDocumentFromVideoPOP(
+  'company-123',
+  'video-456',
+  'user-789'
+);
+
+// Processar todos os POPs não vinculados
+const processed = await integration.autoProcessUnlinkedPOPs('company-123');
+```
+
+### 5. Análise Preditiva
+
+```typescript
+import { PredictiveAnalysisService } from './services/PredictiveAnalysisService';
+
+const analysis = new PredictiveAnalysisService();
+
+// Analisar documento específico
+const docAnalysis = await analysis.analyzeDocument('doc-123');
+
+// Gerar relatório completo da organização
+await analysis.generateReport('org-001');
+```
+
+**Saída do Relatório:**
+```
+📋 RELATÓRIO DE ANÁLISE PREDITIVA
+================================================================
+
+📊 RESUMO EXECUTIVO:
+  Total de documentos analisados: 25
+  Documentos que precisam revisão: 5
+  Risco alto: 2
+  Risco médio: 3
+  Risco baixo: 20
+
+⚠️ DOCUMENTOS QUE PRECISAM REVISÃO:
+
+1. Procedimento de Higienização (doc-001)
+   Risco: ALTO
+   Razões:
+     • Score de conformidade baixo: 65% (< 70%)
+     • Muitas não-conformidades: 5 (> 3)
+   Recomendações:
+     → Revisar procedimentos para aumentar conformidade
+     → Corrigir não-conformidades identificadas no vídeo
+```
+
+## 📊 Dashboard Web
+
+
+Acesse o dashboard em: `http://localhost:3000/documentos`
+
+**Funcionalidades:**
+- Visualização de documentos com status colorido
+- Estatísticas por status (Ativo, Revisão, Rascunho, Obsoleto)
+- Indicadores do Sistema Axioma (custo e impacto na margem)
+- Grid responsivo com Tailwind CSS
+
 ## 🧪 Desenvolvimento Local
+
+### Webapp (Frontend)
+
+```bash
+cd webapp
+npm install
+npm run dev
+```
+
+Acesse: `http://localhost:3000`
+
+### Emuladores Firebase
 
 ```bash
 # Iniciar emuladores do Firebase
